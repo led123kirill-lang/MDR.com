@@ -40,6 +40,7 @@ export default function OrderModal() {
     toStep1,
     toStep2,
     submit,
+    sending,
     borderFor,
     nameOk,
     phoneOk,
@@ -353,8 +354,9 @@ export default function OrderModal() {
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button
                     onClick={toStep1}
+                    disabled={sending}
                     style={{
-                      cursor: 'pointer',
+                      cursor: sending ? 'not-allowed' : 'pointer',
                       flex: '1 1 140px',
                       background: 'transparent',
                       border: '1px solid rgba(255,255,255,.22)',
@@ -368,21 +370,24 @@ export default function OrderModal() {
                   </button>
                   <button
                     onClick={submit}
-                    className="hv-indigo"
+                    disabled={sending}
+                    aria-busy={sending}
+                    className={sending ? undefined : 'hv-indigo'}
                     style={{
                       flex: '2 1 200px',
                       border: 0,
-                      cursor: 'pointer',
-                      background: '#2f22d8',
+                      cursor: sending ? 'progress' : 'pointer',
+                      background: sending ? '#241ba0' : '#2f22d8',
                       color: '#fff',
                       fontSize: 15.5,
                       fontWeight: 500,
                       padding: '16px 20px',
                       borderRadius: 999,
                       transition: 'background .2s',
+                      opacity: sending ? 0.75 : 1,
                     }}
                   >
-                    Отправить заявку
+                    {sending ? 'Отправляем…' : 'Отправить заявку'}
                   </button>
                 </div>
                 <div style={{ fontSize: 12.5, color: hintColor, lineHeight: 1.5 }}>{formHint}</div>

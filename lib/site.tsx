@@ -70,6 +70,8 @@ type SiteValue = {
   closeOrder: () => void;
   step: 1 | 2;
   sent: boolean;
+  /** Идёт POST в /api/order — кнопка блокируется на это время. */
+  sending: boolean;
   err: string;
   qty: number;
   incQty: () => void;
@@ -140,6 +142,7 @@ export function SiteProvider({
   const [orderOpen, setOrderOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [qty, setQty] = useState(1);
   const [name, setNameRaw] = useState('');
   const [phone, setPhoneRaw] = useState('');
@@ -242,6 +245,7 @@ export function SiteProvider({
   const openOrder = useCallback(() => {
     setOrderOpen(true);
     setSent(false);
+    setSending(false);
     setStep(1);
     setErr('');
   }, []);
@@ -260,12 +264,50 @@ export function SiteProvider({
     setErr('');
   }, [nameOk, phoneOk, emailOk]);
 
-  // TODO: здесь будет POST в /api/leads (Supabase `leads` + уведомление в Telegram).
-  // В прототипе отправка была заглушкой — поведение сохранено один в один.
   const submit = useCallback(() => {
-    setSent(true);
+    if (sending) return; // защита от двойного клика
+    setSending(true);
     setErr('');
-  }, []);
+
+    // Отправляем сборку целиком: серверу нужны и контакты, и конфигурация.
+    const payload = {
+      name,
+      phone,
+      email,
+      company,
+      note,
+      model_id: model.id,
+      model_name: model.name,
+      config,
+      qty,
+      total_price: total * qty,
+    };
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        // Сервер может ответить и не-JSON (502 от прокси, HTML-страница ошибки).
+        const data = await res.json().catch(() => null);
+
+        if (res.ok && data?.ok) {
+          setSent(true);
+          setErr('');
+        } else {
+          setErr(data?.error ?? 'Не удалось отправить заявку. Попробуйте ещё раз.');
+        }
+      } catch {
+        // Сеть недоступна — отдельный текст, чтобы не путать с отказом сервера.
+        setErr('Нет связи с сервером. Проверьте интернет и попробуйте снова.');
+      } finally {
+        setSending(false);
+      }
+    })();
+  }, [sending, name, phone, email, company, note, model, config, qty, total]);
 
   // ── Esc закрывает модалку, стрелки листают модели ──
   useEffect(() => {
@@ -336,6 +378,7 @@ export function SiteProvider({
     closeOrder,
     step,
     sent,
+    sending,
     err,
     qty,
     incQty: () => setQty((q) => Math.min(50, q + 1)),
