@@ -1,0 +1,19 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схематичный силуэт дрона MDR">
+  <ellipse cx="600" cy="560" rx="250" ry="34" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="5"/>
+  <g stroke="#8d959f" stroke-width="18" stroke-linecap="round">
+    <path d="M470 330 L330 262"/>
+    <path d="M730 330 L870 262"/>
+    <path d="M470 430 L330 498"/>
+    <path d="M730 430 L870 498"/>
+  </g>
+  <rect x="510" y="322" width="180" height="116" rx="34" fill="#3b434c"/>
+  <circle cx="600" cy="470" r="30" fill="#1d2227"/>
+  <g fill="none" stroke="#c4cad2" stroke-width="12" stroke-linecap="round">
+    <path d="M262 262 h136"/>
+    <path d="M802 262 h136"/>
+    <path d="M262 498 h136"/>
+    <path d="M802 498 h136"/>
+  </g>
+  <circle cx="330" cy="498" r="13" fill="#ff5a48"/>
+  <circle cx="870" cy="262" r="13" fill="#7d92ff"/>
+</svg>

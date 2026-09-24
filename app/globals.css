@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* Токены прототипа — доступны и как CSS-переменные, и как утилиты Tailwind
+   (bg-ink, text-mute, font-display и т.д.). */
+@theme {
+  --font-display: var(--font-archivo), var(--font-manrope), system-ui, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  --color-ink: #08090c;
+  --color-panel: #0d0f14;
+  --color-panel-2: #0e1017;
+  --color-well: #080a0d;
+  --color-fg: #f2f4f7;
+  --color-mute: #8a93a2;
+  --color-mute-2: #7b8494;
+  --color-accent: #2f22d8;
+  --color-accent-hi: #4436ff;
+  --color-danger: #ff6a5a;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #08090c;
+  color: #f2f4f7;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: #c9cfdb;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #fff;
+}
+
+::selection {
+  background: #2f22d8;
+  color: #fff;
+}
+
+input,
+button,
+textarea {
+  font-family: var(--font-sans);
+}
+
+@keyframes mdrFade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mdrSwap {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes mdrSwapUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Ховеры ──
+   В прототипе это был атрибут `style-hover="..."` DC-шаблонизатора;
+   в React ему нет аналога, поэтому каждое состояние — отдельный класс. */
+
+.hv-cta:hover {
+  background: #4436ff;
+  transform: translateY(-1px);
+}
+
+.hv-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(255, 255, 255, 0.18);
+}
+
+.hv-ghost:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.hv-indigo:hover {
+  background: #4436ff;
+}
+
+.hv-outline-white:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.hv-invert:hover {
+  background: #fff;
+  color: #0a0b0e;
+  border-color: #fff;
+}
+
+.hv-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
+}
+
+.hv-arrow:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.07);
+}
+
+.mdr-input:focus {
+  border-color: #4436ff;
+}
