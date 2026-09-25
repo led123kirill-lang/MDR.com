@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { validateLead } from '@/lib/lead-schema';
 import { getServiceClient } from '@/lib/supabase-server';
+import { notifyTelegram } from '@/lib/telegram';
 
 // Заявка пишется в БД на каждый запрос — кешировать нечего.
 export const dynamic = 'force-dynamic';
@@ -60,10 +61,13 @@ export async function POST(request: Request): Promise<NextResponse<Ok | Fail>> {
     return fail('Не удалось сохранить заявку. Попробуйте ещё раз.', 502);
   }
 
-  // TODO: уведомление в Telegram — следующим шагом. Падать из-за него нельзя:
-  // заявка уже в базе, и пользователю важен успех, а не статус доставки в чат.
+  // Уведомление в Telegram — после ответа клиенту: пользователь не ждёт
+  // Telegram, а сбой отправки не трогает заявку, она уже в базе.
+  // notifyTelegram не бросает исключений — ошибки только логирует.
+  const id = data.id as string;
+  after(() => notifyTelegram(lead, id));
 
-  return NextResponse.json<Ok>({ ok: true, id: data.id });
+  return NextResponse.json<Ok>({ ok: true, id });
 }
 
 /** Явный 405 на всё, кроме POST, — иначе Next вернёт невнятную ошибку. */
