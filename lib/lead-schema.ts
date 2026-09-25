@@ -17,6 +17,19 @@ export type LeadInput = {
   total_price?: number;
 };
 
+/**
+ * Скрытое поле-ловушка (honeypot). Человек его не видит и до него не дотянется
+ * с клавиатуры, а боты-автозаполнители заполняют все поля подряд.
+ */
+export const HONEYPOT_FIELD = 'website';
+
+/** Ловушка заполнена — заявку прислал бот. */
+export function honeypotTripped(raw: unknown): boolean {
+  if (!raw || typeof raw !== 'object') return false;
+  const v = (raw as Record<string, unknown>)[HONEYPOT_FIELD];
+  return v != null && String(v).trim() !== '';
+}
+
 /** Телефон считается валидным по 11 цифрам, начинающимся с 7 — как их даёт maskPhone. */
 export function phoneIsValid(raw: string): boolean {
   const d = String(raw ?? '').replace(/\D/g, '');

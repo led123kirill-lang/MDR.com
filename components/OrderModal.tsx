@@ -1,6 +1,7 @@
 'use client';
 
 import NameInput from '@/components/NameInput';
+import { HONEYPOT_FIELD } from '@/lib/lead-schema';
 import { useSite } from '@/lib/site';
 
 const inputStyle: React.CSSProperties = {
@@ -35,6 +36,8 @@ export default function OrderModal() {
     setEmail,
     company,
     setCompany,
+    website,
+    setWebsite,
     note,
     setNote,
     toStep1,
@@ -208,6 +211,32 @@ export default function OrderModal() {
                   placeholder="Компания (необязательно)"
                   style={{ ...inputStyle, border: '1px solid rgba(255,255,255,.14)' }}
                 />
+                {/* Honeypot: поле за пределами экрана, скрыто от скринридеров и
+                    недоступно с клавиатуры — человек его не заполнит. Боты-
+                    автозаполнители заполняют всё подряд; такую заявку сервер
+                    молча отбросит. */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    left: '-10000px',
+                    width: 1,
+                    height: 1,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <label>
+                    Сайт компании
+                    <input
+                      type="text"
+                      name={HONEYPOT_FIELD}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                    />
+                  </label>
+                </div>
                 <button
                   onClick={toStep2}
                   className="hv-indigo"

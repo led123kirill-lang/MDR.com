@@ -1,5 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { after, NextResponse } from 'next/server';
-import { validateLead } from '@/lib/lead-schema';
+import { honeypotTripped, validateLead } from '@/lib/lead-schema';
+import { clientIp, hashIp, isRateLimited, RATE_LIMIT } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase-server';
 import { notifyTelegram } from '@/lib/telegram';
 
@@ -9,8 +11,8 @@ export const dynamic = 'force-dynamic';
 type Ok = { ok: true; id: string };
 type Fail = { ok: false; error: string; field?: string };
 
-const fail = (error: string, status: number, field?: string) =>
-  NextResponse.json<Fail>({ ok: false, error, ...(field ? { field } : {}) }, { status });
+const fail = (error: string, status: number, field?: string, headers?: HeadersInit) =>
+  NextResponse.json<Fail>({ ok: false, error, ...(field ? { field } : {}) }, { status, headers });
 
 export async function POST(request: Request): Promise<NextResponse<Ok | Fail>> {
   let body: unknown;
@@ -18,6 +20,14 @@ export async function POST(request: Request): Promise<NextResponse<Ok | Fail>> {
     body = await request.json();
   } catch {
     return fail('Некорректный запрос.', 400);
+  }
+
+  // Honeypot — первым и молча. Боту отвечаем обычным «успехом» с фиктивным id:
+  // по ответу не должно быть видно, что заявку отбросили. В базу и в Telegram
+  // ничего не уходит.
+  if (honeypotTripped(body)) {
+    console.warn('[api/order] honeypot заполнен — заявка отброшена');
+    return NextResponse.json<Ok>({ ok: true, id: randomUUID() });
   }
 
   // Валидация повторяется на сервере намеренно: клиентские проверки —
@@ -38,6 +48,20 @@ export async function POST(request: Request): Promise<NextResponse<Ok | Fail>> {
     return fail('Сервис приёма заявок временно недоступен.', 503);
   }
 
+  // Ограничение частоты: не больше RATE_LIMIT.max заявок с одного IP за окно.
+  const ip = clientIp(request);
+  const ipHash = ip ? hashIp(ip) : null;
+  if (!ipHash) {
+    console.warn('[api/order] IP клиента не определён — лимит частоты не применён');
+  } else if (await isRateLimited(supabase, ipHash)) {
+    return fail(
+      'Слишком много заявок подряд. Попробуйте через несколько минут.',
+      429,
+      undefined,
+      { 'Retry-After': String(RATE_LIMIT.windowMs / 1000) },
+    );
+  }
+
   const { data, error } = await supabase
     .from('leads')
     .insert({
@@ -51,6 +75,7 @@ export async function POST(request: Request): Promise<NextResponse<Ok | Fail>> {
       config: lead.config ?? null,
       qty: lead.qty ?? null,
       total_price: lead.total_price ?? null,
+      ip_hash: ipHash,
     })
     .select('id')
     .single();

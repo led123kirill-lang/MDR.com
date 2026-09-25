@@ -84,6 +84,9 @@ type SiteValue = {
   setEmail: (v: string) => void;
   company: string;
   setCompany: (v: string) => void;
+  /** Скрытое поле-ловушка для ботов — человек его не заполняет. */
+  website: string;
+  setWebsite: (v: string) => void;
   note: string;
   setNote: (v: string) => void;
   toStep1: () => void;
@@ -148,6 +151,7 @@ export function SiteProvider({
   const [phone, setPhoneRaw] = useState('');
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
+  const [website, setWebsite] = useState('');
   const [note, setNote] = useState('');
   const [err, setErr] = useState('');
 
@@ -276,6 +280,7 @@ export function SiteProvider({
       email,
       company,
       note,
+      website, // honeypot: у людей всегда пустой
       model_id: model.id,
       model_name: model.name,
       config,
@@ -307,7 +312,7 @@ export function SiteProvider({
         setSending(false);
       }
     })();
-  }, [sending, name, phone, email, company, note, model, config, qty, total]);
+  }, [sending, name, phone, email, company, note, website, model, config, qty, total]);
 
   // ── Esc закрывает модалку, стрелки листают модели ──
   useEffect(() => {
@@ -391,6 +396,8 @@ export function SiteProvider({
     setEmail,
     company,
     setCompany,
+    website,
+    setWebsite,
     note,
     setNote,
     toStep1,
